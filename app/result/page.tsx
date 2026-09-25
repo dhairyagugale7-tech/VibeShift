@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 
 export default function ResultPage() {
@@ -13,10 +12,6 @@ export default function ResultPage() {
 
   const result =
     searchParams.get("result") || "";
-
-  const [imageReady, setImageReady] = useState(false);
-
-  const [imageError, setImageError] = useState(false);
 
   const vibe =
     searchParams.get("vibe") || "coquette";
@@ -102,27 +97,13 @@ export default function ResultPage() {
               VibeShift
             </div>
 
-            {result && !imageReady && (
-                <div className="flex aspect-square w-full items-center justify-center">
-                    <div className="text-center">
-                    <div className="mb-3 text-3xl">✨</div>
-                    <p className="text-sm text-[#8A5A6C]">
-                        Creating your new world...
-                    </p>
-                    <p className="mt-1 text-xs text-[#B58A9A]">
-                        This can take a few seconds
-                    </p>
-                    </div>
-                </div>
-                )}
-
-                {result && imageReady && (
-                <img
-                    src={result}
-                    alt="VibeShift result"
-                    className="aspect-square w-full object-cover"
-                />
-                )}
+            {result && (
+              <img
+                src={result}
+                alt="VibeShift result"
+                className="aspect-square w-full object-cover"
+              />
+            )}
           </div>
 
         </div>
