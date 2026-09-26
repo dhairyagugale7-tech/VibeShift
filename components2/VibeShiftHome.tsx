@@ -10,7 +10,7 @@ import {
   SlidersHorizontal,
   Link2,
   PenLine,
-  Upload,
+  UserCircle,
   X,
   CheckCircle2,
   History as HistoryIcon,
@@ -275,6 +275,74 @@ const vibeBlendProfiles: Record<
     lighting: "soft architectural light, gentle shadows, controlled highlights",
   },
 };
+
+function Bottle() {
+  return (
+    <div className="relative h-[62px] w-[48px]">
+      {/* bottle cap */}
+      <div className="absolute left-1/2 top-0 h-[9px] w-[10px] -translate-x-1/2 rounded-t-[2px] bg-[#D8B77E]" />
+
+      {/* bottle */}
+      <div className="absolute bottom-0 left-1/2 h-[48px] w-[34px] -translate-x-1/2 rounded-[9px] border border-[#E4D9CE] bg-[#FFFDFB]" />
+    </div>
+  );
+}
+
+function VibeDecoration({ id }: { id: string }) {
+  if (id === "coquette") {
+    return (
+      <>
+        <div className="absolute left-4 top-4 h-3 w-3 rounded-full bg-white" />
+        <div className="absolute right-3 top-2 h-6 w-6 rounded-full bg-[#EF9EBA]" />
+      </>
+    );
+  }
+
+  if (id === "dark-luxury") {
+    return (
+      <>
+        <div className="absolute left-4 top-5 h-[2px] w-10 bg-[#D7B457]" />
+        <div className="absolute right-4 top-3 h-5 w-5 rounded-full bg-[#703047]" />
+      </>
+    );
+  }
+
+  if (id === "botanical") {
+    return (
+      <>
+        <div className="absolute left-4 top-4 h-3 w-7 rotate-[-18deg] rounded-full bg-[#82B57C]" />
+        <div className="absolute right-4 top-3 h-3 w-7 rotate-[-18deg] rounded-full bg-[#96C58F]" />
+      </>
+    );
+  }
+
+  if (id === "dreamy") {
+    return (
+      <>
+        <div className="absolute left-4 top-4 h-5 w-9 rounded-full bg-white/60" />
+        <div className="absolute right-5 top-4 text-lg text-white">
+          •
+        </div>
+        <div className="absolute right-8 top-8 text-xs text-white">
+          •
+        </div>
+      </>
+    );
+  }
+
+  if (id === "y2k") {
+    return (
+      <>
+        <div className="absolute left-4 top-3 h-7 w-7 rounded-full border-2 border-[#91C8E9]" />
+        <div className="absolute right-4 top-5 h-[4px] w-6 rounded-full bg-[#EA79BD]" />
+      </>
+    );
+  }
+
+  return (
+    <div className="absolute bottom-3 left-1/2 h-2 w-12 -translate-x-1/2 rounded-full bg-[#D7CFC4]" />
+  );
+}
 
 export default function VibeShiftHome() {
   const [selectedVibe, setSelectedVibe] = useState("coquette");
@@ -606,10 +674,10 @@ Only transform the surrounding environment, background, atmosphere and lighting.
               History
             </button>
 
-            <div
-              className="h-[22px] w-[22px] rounded-full"
-              style={{ backgroundColor: "#F0AFC4" }}
-              aria-hidden="true"
+            <UserCircle
+              size={19}
+              strokeWidth={1.7}
+              style={{ color: "#8A5A6C" }}
             />
           </nav>
         </header>
@@ -617,13 +685,6 @@ Only transform the surrounding environment, background, atmosphere and lighting.
         {/* ================= HERO ================= */}
 
         <section className="mx-auto mt-8 max-w-[720px] text-center">
-          <span
-            className="mb-4 inline-block rounded-full px-4 py-1.5 text-[10px] uppercase tracking-[0.14em]"
-            style={{ backgroundColor: "#FDEEF2", color: "#E8829F" }}
-          >
-            AI product photoshoots
-          </span>
-
           <h1
             className="text-[38px] leading-[1.03] sm:text-[48px]"
             style={{
@@ -688,10 +749,13 @@ Only transform the surrounding environment, background, atmosphere and lighting.
                   onClick={() => open()}
                   className="flex min-w-0 flex-1 items-center gap-4 text-left"
                 >
-                  {/* Preview / icon */}
+                  {/* Preview */}
                   <div
-                    className="flex h-[52px] w-[52px] shrink-0 items-center justify-center overflow-hidden rounded-[16px]"
-                    style={{ backgroundColor: "#FCDCE5" }}
+                    className="flex h-[66px] w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-[17px] border"
+                    style={{
+                      backgroundColor: "#FFFDFC",
+                      borderColor: "#F0D4DD",
+                    }}
                   >
                     {imageUrl ? (
                       <img
@@ -700,7 +764,7 @@ Only transform the surrounding environment, background, atmosphere and lighting.
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <Upload size={18} strokeWidth={2} style={{ color: "#E8829F" }} />
+                      <Bottle />
                     )}
                   </div>
 
@@ -710,27 +774,29 @@ Only transform the surrounding environment, background, atmosphere and lighting.
                       className="truncate text-[14px] font-medium"
                       style={{ color: "#5A2A3E" }}
                     >
-                      {imageUrl ? "Photo uploaded" : "Drop your product photo"}
+                      {fileName}
                     </p>
 
                     <p
-                      className="mt-1 truncate text-[12px]"
+                      className="mt-1 text-[12px]"
                       style={{ color: "#8A5A6C" }}
                     >
                       {imageUrl
-                        ? `Tap to change photo — ${fileName}`
-                        : `or click to browse — ${fileName}`}
+                        ? "Uploaded. Tap here to change photo"
+                        : "Upload a photo to get started"}
                     </p>
                   </div>
 
-                  {imageUrl && (
-                    <div
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[1.5px]"
-                      style={{ borderColor: "#E8829F", color: "#E8829F" }}
-                    >
-                      <Check size={14} strokeWidth={2.5} />
-                    </div>
-                  )}
+                  {/* Check */}
+                  <div
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[1.5px]"
+                    style={{
+                      borderColor: "#E8829F",
+                      color: "#E8829F",
+                    }}
+                  >
+                    <Check size={14} strokeWidth={2.5} />
+                  </div>
                 </motion.button>
 
                 {imageUrl && (
@@ -774,12 +840,9 @@ Only transform the surrounding environment, background, atmosphere and lighting.
 
           {/* ================= VIBE GRID ================= */}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-3">
             {vibes.map((vibe) => {
               const active = selectedVibe === vibe.id;
-              const isDark = vibe.id === "dark-luxury";
-              const nameColor = isDark ? "#F5E9EC" : "#4A2A38";
-              const descColor = isDark ? "rgba(245,233,236,0.72)" : "rgba(74,42,56,0.68)";
 
               return (
                 <motion.button
@@ -787,34 +850,48 @@ Only transform the surrounding environment, background, atmosphere and lighting.
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.985 }}
                   onClick={() => handleVibeSelect(vibe.id)}
-                  className="text-left"
+                  className="group text-left"
                 >
+                  {/* Visual card */}
                   <div
-                    className="relative h-[92px] overflow-hidden rounded-[18px] px-4 py-3 transition sm:h-[100px]"
+                    className="relative h-[100px] overflow-hidden rounded-[18px] transition"
                     style={{
                       backgroundColor: vibe.background,
-                      border: active ? "2px solid #E8829F" : "2px solid transparent",
-                      boxShadow: active
-                        ? "0 6px 16px -8px rgba(232,130,159,0.55)"
-                        : "none",
+                      border: active
+                        ? "2px solid #E8829F"
+                        : "2px solid transparent",
                     }}
                   >
-                    <p className="text-[13.5px] font-semibold" style={{ color: nameColor }}>
-                      {vibe.name}
-                    </p>
-                    <p className="mt-0.5 text-[11px] leading-4" style={{ color: descColor }}>
-                      {vibe.description}
-                    </p>
-
+                    {/* Selected pink corner effect */}
                     {active && (
-                      <div
-                        className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full"
-                        style={{ backgroundColor: isDark ? "#F5E9EC" : "#E8829F" }}
-                      >
-                        <Check size={11} strokeWidth={3} style={{ color: isDark ? "#292124" : "#fff" }} />
-                      </div>
+                      <motion.div
+                        layoutId="selected-vibe"
+                        className="absolute inset-0 rounded-[16px]"
+                        style={{
+                          boxShadow:
+                            "inset 0 0 0 1px rgba(255,255,255,0.3)",
+                        }}
+                      />
                     )}
+
+                    <VibeDecoration id={vibe.id} />
+
+                    {/* The SAME bottle for every vibe */}
+                    <div className="absolute inset-0 flex items-end justify-center pb-3">
+                      <Bottle />
+                    </div>
                   </div>
+
+                  {/* Vibe name */}
+                  <p
+                    className="mt-1.5 text-center text-[13px] transition"
+                    style={{
+                      color: active ? "#E8829F" : "#5A2A3E",
+                      fontWeight: active ? 500 : 400,
+                    }}
+                  >
+                    {vibe.name}
+                  </p>
                 </motion.button>
               );
             })}
