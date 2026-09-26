@@ -13,8 +13,10 @@ import {
   UserCircle,
   X,
   CheckCircle2,
+  History as HistoryIcon,
+  Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { vibePrompts } from "@/lib/vibe-prompts";
 
 const vibes = [
@@ -55,6 +57,16 @@ const vibes = [
     description: "Neutral studio, soft shadows, editorial",
   },
 ];
+
+type HistoryItem = {
+  id: string;
+  original: string;
+  result: string;
+  vibe: string;
+  createdAt: number;
+};
+
+const HISTORY_KEY = "vibeshift-history";
 
 const customizationOptions: Record<
   string,
@@ -343,6 +355,8 @@ export default function VibeShiftHome() {
   const [showBlendModal, setShowBlendModal] = useState(false);
 
   const [showDescribeModal, setShowDescribeModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [customPrompt, setCustomPrompt] = useState("");
   const [draftCustomPrompt, setDraftCustomPrompt] = useState("");
 
@@ -358,6 +372,47 @@ export default function VibeShiftHome() {
     atmosphere: 0,
     lighting: 0,
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const previousImage = params.get("image");
+    const previousFileName = params.get("fileName");
+
+    if (previousImage) {
+      setImageUrl(previousImage);
+      setFileName(previousFileName || "Previous image");
+    }
+
+    try {
+      const storedHistory = localStorage.getItem(HISTORY_KEY);
+      if (storedHistory) {
+        const parsed = JSON.parse(storedHistory);
+        if (Array.isArray(parsed)) {
+          setHistoryItems(parsed);
+        }
+      }
+    } catch {
+      localStorage.removeItem(HISTORY_KEY);
+    }
+  }, []);
+
+  const handleDeleteImage = () => {
+    setImageUrl(null);
+    setPublicId(null);
+    setFileName("perfume-bottle.jpg");
+
+    setSelectedVibe("coquette");
+    setBlendSettings(null);
+    setCustomPrompt("");
+    setDraftCustomPrompt("");
+
+    setCustomization({
+      environment: 0,
+      decor: 0,
+      atmosphere: 0,
+      lighting: 0,
+    });
+  };
 
   const selected =
     vibes.find((vibe) => vibe.id === selectedVibe) ?? vibes[0];
@@ -402,6 +457,26 @@ export default function VibeShiftHome() {
     setCustomPrompt(trimmedPrompt);
     setBlendSettings(null);
     setShowDescribeModal(false);
+  };
+
+  const handleHistoryDelete = (id: string) => {
+    setHistoryItems((current) => {
+      const next = current.filter((item) => item.id !== id);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleHistoryClear = () => {
+    setHistoryItems([]);
+    localStorage.removeItem(HISTORY_KEY);
+  };
+
+  const openHistoryItem = (item: HistoryItem) => {
+    window.location.href =
+      `/result?original=${encodeURIComponent(item.original)}` +
+      `&result=${encodeURIComponent(item.result)}` +
+      `&vibe=${encodeURIComponent(item.vibe)}`;
   };
 
   const shiftMyVibe = async () => {
@@ -592,6 +667,7 @@ Only transform the surrounding environment, background, atmosphere and lighting.
             </button>
 
             <button
+              onClick={() => setShowHistory(true)}
               className="transition hover:opacity-70"
               style={{ color: "#8A5A6C" }}
             >
@@ -660,67 +736,96 @@ Only transform the surrounding environment, background, atmosphere and lighting.
             }}
           >
             {({ open }) => (
-              <motion.button
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.995 }}
-                onClick={() => open()}
+              <div
                 className="flex w-full items-center gap-4 rounded-[20px] border border-dashed p-4 text-left transition"
                 style={{
                   backgroundColor: "#FDEEF2",
                   borderColor: "#EFAFC0",
                 }}
               >
-                {/* Preview */}
-                <div
-                  className="flex h-[66px] w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-[17px] border"
-                  style={{
-                    backgroundColor: "#FFFDFC",
-                    borderColor: "#F0D4DD",
-                  }}
+                <motion.button
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.995 }}
+                  onClick={() => open()}
+                  className="flex min-w-0 flex-1 items-center gap-4 text-left"
                 >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt="Uploaded"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Bottle />
-                  )}
-                </div>
-
-                {/* File info */}
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-[14px] font-medium"
-                    style={{ color: "#5A2A3E" }}
+                  {/* Preview */}
+                  <div
+                    className="flex h-[66px] w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-[17px] border"
+                    style={{
+                      backgroundColor: "#FFFDFC",
+                      borderColor: "#F0D4DD",
+                    }}
                   >
-                    {fileName}
-                  </p>
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt="Uploaded"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Bottle />
+                    )}
+                  </div>
 
-                  <p
-                    className="mt-1 text-[12px]"
-                    style={{ color: "#8A5A6C" }}
+                  {/* File info */}
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate text-[14px] font-medium"
+                      style={{ color: "#5A2A3E" }}
+                    >
+                      {fileName}
+                    </p>
+
+                    <p
+                      className="mt-1 text-[12px]"
+                      style={{ color: "#8A5A6C" }}
+                    >
+                      {imageUrl
+                        ? "Uploaded. Tap here to change photo"
+                        : "Upload a photo to get started"}
+                    </p>
+                  </div>
+
+                  {/* Check */}
+                  <div
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[1.5px]"
+                    style={{
+                      borderColor: "#E8829F",
+                      color: "#E8829F",
+                    }}
                   >
-                    {imageUrl
-                      ? "Uploaded. Tap to change photo"
-                      : "Upload a photo to get started"}
-                  </p>
-                </div>
+                    <Check size={14} strokeWidth={2.5} />
+                  </div>
+                </motion.button>
 
-                {/* Check */}
-                <div
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[1.5px]"
-                  style={{
-                    borderColor: "#E8829F",
-                    color: "#E8829F",
-                  }}
-                >
-                  <Check size={14} strokeWidth={2.5} />
-                </div>
-              </motion.button>
+                {imageUrl && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteImage}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full border bg-white px-3 py-2 text-[11px] transition hover:bg-[#FFF8F4]"
+                    style={{
+                      borderColor: "#F0CCD7",
+                      color: "#8A5A6C",
+                    }}
+                    aria-label="Delete current image"
+                  >
+                    <X size={13} />
+                    Delete
+                  </button>
+                )}
+              </div>
             )}
           </CldUploadWidget>
+
+          {imageUrl && (
+            <p
+              className="mt-2 px-1 text-[10px]"
+              style={{ color: "#B58A99" }}
+            >
+              Want to use a different picture? Delete this image, then upload a new one.
+            </p>
+          )}
         </section>
 
         {/* ================= VIBE TITLE ================= */}
@@ -1354,6 +1459,179 @@ Only transform the surrounding environment, background, atmosphere and lighting.
           </button>
         </section>
       </div>
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#3D2430]/25 p-3 backdrop-blur-[3px] sm:items-center sm:p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="w-full max-w-[760px] overflow-hidden rounded-[26px] border bg-[#FFF8F4] shadow-2xl"
+            style={{ borderColor: "#F0CCD7" }}
+          >
+            <div
+              className="flex items-start justify-between border-b px-5 py-5 sm:px-6"
+              style={{ borderColor: "#F2D8DF" }}
+            >
+              <div>
+                <p
+                  className="text-[11px] uppercase tracking-[0.16em]"
+                  style={{ color: "#E8829F" }}
+                >
+                  Your creations
+                </p>
+                <h2
+                  className="mt-1 text-[25px]"
+                  style={{
+                    fontFamily: "var(--font-fraunces)",
+                    color: "#5A2A3E",
+                  }}
+                >
+                  History.
+                </h2>
+                <p
+                  className="mt-1 text-[12px]"
+                  style={{ color: "#8A5A6C" }}
+                >
+                  Your recent VibeShift creations live here.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowHistory(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full border transition hover:bg-white"
+                style={{
+                  borderColor: "#F0CCD7",
+                  color: "#8A5A6C",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto px-5 py-5 sm:px-6">
+              {historyItems.length === 0 ? (
+                <div
+                  className="rounded-[18px] border bg-white px-5 py-10 text-center"
+                  style={{ borderColor: "#F0DCE2" }}
+                >
+                  <HistoryIcon
+                    size={24}
+                    className="mx-auto"
+                    style={{ color: "#E8829F" }}
+                  />
+                  <p
+                    className="mt-3 text-[13px] font-medium"
+                    style={{ color: "#5A2A3E" }}
+                  >
+                    No creations yet
+                  </p>
+                  <p
+                    className="mt-1 text-[11px]"
+                    style={{ color: "#8A5A6C" }}
+                  >
+                    Your generated worlds will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {historyItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex gap-3 rounded-[18px] border bg-white p-3"
+                      style={{ borderColor: "#F0DCE2" }}
+                    >
+                      <button
+                        onClick={() => openHistoryItem(item)}
+                        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                      >
+                        <img
+                          src={item.result}
+                          alt={item.vibe}
+                          className="h-[72px] w-[72px] shrink-0 rounded-[14px] object-cover"
+                        />
+                        <div className="min-w-0">
+                          <p
+                            className="truncate text-[13px] font-medium"
+                            style={{ color: "#5A2A3E" }}
+                          >
+                            {item.vibe === "custom-vibe"
+                              ? "Your custom vibe"
+                              : item.vibe
+                                  .split("+")
+                                  .map((part) =>
+                                    part
+                                      .trim()
+                                      .split("-")
+                                      .map(
+                                        (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1)
+                                      )
+                                      .join(" ")
+                                  )
+                                  .join(" + ")}
+                          </p>
+                          <p
+                            className="mt-1 text-[10px]"
+                            style={{ color: "#A47A89" }}
+                          >
+                            {new Date(item.createdAt).toLocaleString()}
+                          </p>
+                          <p
+                            className="mt-2 text-[10px]"
+                            style={{ color: "#E8829F" }}
+                          >
+                            Open creation →
+                          </p>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleHistoryDelete(item.id)}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-full border transition hover:bg-[#FDEEF2]"
+                        style={{
+                          borderColor: "#F0DCE2",
+                          color: "#8A5A6C",
+                        }}
+                        aria-label="Delete history item"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {historyItems.length > 0 && (
+              <div
+                className="flex items-center justify-between border-t px-5 py-4 sm:px-6"
+                style={{ borderColor: "#F2D8DF" }}
+              >
+                <button
+                  onClick={handleHistoryClear}
+                  className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[11px] transition hover:bg-white"
+                  style={{
+                    borderColor: "#F0DCE2",
+                    color: "#8A5A6C",
+                  }}
+                >
+                  <Trash2 size={13} />
+                  Clear history
+                </button>
+
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="rounded-full px-4 py-2.5 text-[12px]"
+                  style={{ color: "#8A5A6C" }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+
       {showBlendModal && (
         <BlendVibesModal
           vibes={vibes}
