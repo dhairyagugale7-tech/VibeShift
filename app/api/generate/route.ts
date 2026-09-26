@@ -11,21 +11,14 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * The uploaded image is already a Cloudinary delivery URL.
-     *
-     * Example:
-     * https://res.cloudinary.com/cloud/image/upload/v123/vibeshift/originals/photo.jpg
-     *
-     * We insert Cloudinary's generative background transformation
-     * directly into that delivery URL.
-     */
-
     const marker = "/image/upload/";
 
     if (!imageUrl.includes(marker)) {
       return NextResponse.json(
-        { error: "The uploaded image is not a valid Cloudinary image URL" },
+        {
+          error:
+            "The uploaded image is not a valid Cloudinary image URL",
+        },
         { status: 400 }
       );
     }
@@ -33,14 +26,25 @@ export async function POST(request: Request) {
     const [baseUrl, imagePath] = imageUrl.split(marker);
 
     /*
-     * Cloudinary expects the natural-language prompt to be URL encoded.
+     * Cloudinary transformation syntax is sensitive to certain
+     * characters. Keep the prompt natural-language only and
+     * remove characters that can be interpreted as transformation
+     * syntax.
      */
-    const safePrompt = prompt
-        .replace(/[,;|]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    const safePrompt = String(prompt)
+      .replace(/[(),;|]/g, " ")
+      .replace(/[%#?&=]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-    const encodedPrompt = encodeURIComponent(safePrompt);
+    /*
+     * Keep the prompt at a reasonable size for a delivery URL.
+     * The detailed base vibe prompt is already responsible for
+     * the main visual direction.
+     */
+    const finalPrompt = safePrompt.slice(0, 5000);
+
+    const encodedPrompt = encodeURIComponent(finalPrompt);
 
     /*
      * Generate a new background while keeping the original
@@ -51,8 +55,7 @@ export async function POST(request: Request) {
       `e_gen_background_replace:prompt_${encodedPrompt}/` +
       imagePath;
 
-    console.log("VibeShift Cloudinary transformation:");
-    console.log(resultUrl);
+    console.log("VibeShift Cloudinary transformation created.");
 
     return NextResponse.json({
       resultUrl,
