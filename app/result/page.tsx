@@ -2,10 +2,10 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Download, X, GripVertical } from "lucide-react";
 
-export default function ResultPage() {
+function ResultPageContent() {
   const searchParams = useSearchParams();
 
   const original = searchParams.get("original");
@@ -1035,5 +1035,24 @@ export default function ResultPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#fff9f5] flex items-center justify-center px-6">
+          <div className="text-center">
+            <div className="mx-auto mb-6 h-12 w-12 rounded-full border-2 border-[#edb9c7] border-t-[#7f4352] animate-spin" />
+            <h1 className="text-2xl font-semibold text-[#4b2831]">
+              Loading your VibeShift world...
+            </h1>
+          </div>
+        </main>
+      }
+    >
+      <ResultPageContent />
+    </Suspense>
   );
 }
