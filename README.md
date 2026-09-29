@@ -678,7 +678,7 @@ VibeShift/
 ## 🎥 Demo
 
 **Live Demo:**\
-Coming soon
+[VibeShift - Same Subject Different World](https://vibeshift-opal.vercel.app)
 
 **Demo Video:**\
 Coming soon
